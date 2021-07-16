@@ -34,7 +34,7 @@ var BaseMaps = {
 // Strabo (source: strabo.csv)
 var StraboLayerGroup = L.layerGroup([])
 
-$.get('./strabo.csv', function (csvString) {
+$.get('http:./data/strabo.csv', function (csvString) {
 
     // Use PapaParse to convert string to array of objects
     var data = Papa.parse(csvString, { header: true, dynamicTyping: true }).data;
