@@ -29,10 +29,10 @@ var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/
 
 // variable with all the basemaps
 var BaseMaps = {
+    "Light CartoDB" : light,
     "Open Street Map" : OSM,
     "ESRI World Imagery" : Esri_WorldImagery,
-    "Dark CartoDB" : dark,
-    "Light CartoDB" : light
+    "Dark CartoDB" : dark    
 };
 
 //OVERLAY MAPS
@@ -108,7 +108,7 @@ var overlayMaps = {
 var map = L.map('map', {
     center: [50.5, -2.5],
     zoom: 5,
-    layers: OSM,
+    layers: light,
     scrollWheelZoom: true,
     tap: false
 });
