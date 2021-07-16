@@ -15,6 +15,11 @@ var Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest
 	attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
 });
 
+// Light Carto basemap tiles
+var light = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attribution">CARTO</a>'
+  });
+
 //Dark basemap without labels by CartoDB
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
 	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -26,7 +31,8 @@ var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/
 var BaseMaps = {
     "Open Street Map" : OSM,
     "ESRI World Imagery" : Esri_WorldImagery,
-    "Dark CartoDB" : dark
+    "Dark CartoDB" : dark,
+    "Light CartoDB" : light
 };
 
 //OVERLAY MAPS
@@ -34,7 +40,7 @@ var BaseMaps = {
 // Strabo (source: strabo.csv)
 var StraboLayerGroup = L.layerGroup([])
 
-$.get('https://rinsewillet.github.io/StraboMap/data/strabo.csv', function (csvString) {
+$.get('/data/strabo.csv', function (csvString) {
 
     // Use PapaParse to convert string to array of objects
     var data = Papa.parse(csvString, { header: true, dynamicTyping: true }).data;
