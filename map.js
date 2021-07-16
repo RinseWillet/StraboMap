@@ -1,7 +1,3 @@
-
-
-
-
 //BASEMAPS
 
 // Open Street Map tile layer as base map. The phrase .addTo(map) ensures this base map is displayed by default
@@ -97,10 +93,70 @@ $.get("strabo.csv", function (csvString) {
     }    
 });
 
+// Pliny (source: pliny.csv)
+var PlinyLayerGroup = L.layerGroup([])
+
+$.get("pliny.csv", function (csvString) {
+
+    // Use PapaParse to convert string to array of objects
+    var data = Papa.parse(csvString, { header: true, dynamicTyping: true }).data;
+
+
+    // For each row in data, create a marker and add it to an array for the Layer Group   
+    for (var i in data) {
+
+        // For each row, columns  `Description`, `Ref`, `Text`, `comment`, `Lat`, `Lng`, and `Pleiades` are required
+        var row = data[i];      
+
+        var Description = row.Description;
+        var Ref = row.Ref;
+        var text = row.Text;
+        var comment = row.comment;
+        if (comment === null) {
+            comment = " - "
+        }
+        var pleiades = row.Pleiades;        
+        var popup = "<b>Name : " + Description + "</b><br/>Reference : " + Ref + "<br/>Text : " + text + "<br/>Comment : " + comment +
+         "<br/><a href='https://pleiades.stoa.org/places/" + pleiades + "'>Pleiades : " + pleiades + "</a>";
+
+        // icons for different categories of points
+        var markerURL = "";
+        var markerSize = [];
+        if(row.type === "tribe") {
+            markerURL = "./icons/star-stroked.svg";
+            markerSize = [15, 80];            
+        }
+        if(row.type === "forest") {
+            markerURL = "./icons/park-alt1.svg";
+            markerSize = [30, 80];           
+        }
+        if(row.type === "city") {
+            markerURL = "./icons/square-stroked.svg"
+            markerSize = [22, 80];            
+        }
+        if(row.type === "place" || row.type === "island") {
+            markerURL = "./icons/triangle-stroked.svg"
+            markerSize = [25, 80];            
+        }
+
+        //setting up icons for specific types
+        var pointIcon = L.icon({
+            iconUrl: markerURL,
+            iconSize: markerSize,
+        });
+
+        //adding markers to map with icons and binding popups
+        var marker = L.marker([row.Lat, row.Lng], {icon: pointIcon,
+            opacity: 1
+        }).bindPopup(popup);
+        PlinyLayerGroup.addLayer(marker).addTo(map);
+    }    
+});
 
 // OVERLAYMAPS VARIABLE
 var overlayMaps = {
-    "Strabo": StraboLayerGroup
+    "Strabo": StraboLayerGroup,
+    "Pliny" : PlinyLayerGroup
 };
 
 
@@ -108,9 +164,9 @@ var overlayMaps = {
 var map = L.map('map', {
     center: [50.5, -2.5],
     zoom: 5,
-    layers: light,
     scrollWheelZoom: true,
-    tap: false
+    tap: false,
+    layers: [light, StraboLayerGroup]    
 });
 
 // SET UP CONTROL PANEL for selecting the baselayers
@@ -119,7 +175,7 @@ var controlLayers = L.control.layers(BaseMaps, overlayMaps, {
     collapsed: true
 }).addTo(map);
 
-//geolocation
+//GEOLOCATION - CENTRE MAP ON YOUR POSITION
 map.locate(
     {
      setView: true, 
@@ -127,7 +183,7 @@ map.locate(
     }
 );
 
-//markeren jouw locatie
+//MARKING YOUR LOCATION
 function onLocationMarker(e) {
     L.marker(e.latlng, {
         icon: new L.icon({
@@ -143,5 +199,5 @@ function onLocationMarker(e) {
 map.on('locationfound', onLocationMarker);
 
 map.attributionControl.setPrefix(
-    'View <a href="https://github.com/HandsOnDataViz/leaflet-map-csv" target="_blank">code on GitHub</a>'
+    'View <a href="https://github.com/RinseWillet/StraboMap" target="_blank">code on GitHub</a>'
 );
