@@ -33,132 +33,93 @@ var BaseMaps = {
 
 //OVERLAY MAPS
 
+//CSV  Layers
+const addCSV = async (url, layerGroup) => {
+
+    //read the csv file
+    const response = await fetch(url);
+    const csvData = await response.text();
+
+    // Use PapaParse to convert string to array of objects   
+    var data = Papa.parse(csvData, { header: true, dynamicTyping: true }).data;
+
+    // For each row in data, create a marker and add it to an array for the Layer Group   
+    for (var i in data) {
+
+        // For each row, columns  `Description`, `Ref`, `Text`, `comment`, `Lat`, `Lng`, and `Pleiades` are required
+        var row = data[i];      
+
+        var Description = row.Description;
+        var Ref = row.Ref;
+        var text = row.Text;
+        var comment = row.comment;
+        if (comment === null) {
+            comment = " - "
+        }
+        var pleiades = row.Pleiades;        
+        var popup = "<b>Name : " + Description + "</b><br/>Reference : " + Ref + "<br/>Text : " + text + "<br/>Comment : " + comment +
+         "<br/><a href='https://pleiades.stoa.org/places/" + pleiades + "'>Pleiades : " + pleiades + "</a>";
+
+        // icons for different categories of points
+        var markerURL = "";
+        var markerSize = [];
+        if(row.type === "tribe") {
+            markerURL = "./icons/star-stroked.svg";
+            markerSize = [15, 80];            
+        }
+        if(row.type === "forest") {
+            markerURL = "./icons/park-alt1.svg";
+            markerSize = [30, 80];           
+        }
+        if(row.type === "city") {
+            markerURL = "./icons/square-stroked.svg"
+            markerSize = [22, 80];            
+        }
+        if(row.type === "place" || row.type === "island") {
+            markerURL = "./icons/triangle-stroked.svg"
+            markerSize = [25, 80];            
+        }
+
+        //setting up icons for specific types
+        var pointIcon = L.icon({
+            iconUrl: markerURL,
+            iconSize: markerSize,
+        });
+
+        //adding markers to map with icons and binding popups
+        var marker = L.marker([row.Lat, row.Lng], {icon: pointIcon,
+            opacity: 1
+        }).bindPopup(popup);
+        layerGroup.addLayer(marker).addTo(map);
+    }
+}
+
 // Strabo (source: strabo.csv)
 var StraboLayerGroup = L.layerGroup([])
 
-$.get("strabo.csv", function (csvString) {
-
-    // Use PapaParse to convert string to array of objects
-    var data = Papa.parse(csvString, { header: true, dynamicTyping: true }).data;
-
-
-    // For each row in data, create a marker and add it to an array for the Layer Group   
-    for (var i in data) {
-
-        // For each row, columns  `Description`, `Ref`, `Text`, `comment`, `Lat`, `Lng`, and `Pleiades` are required
-        var row = data[i];      
-
-        var Description = row.Description;
-        var Ref = row.Ref;
-        var text = row.Text;
-        var comment = row.comment;
-        if (comment === null) {
-            comment = " - "
-        }
-        var pleiades = row.Pleiades;        
-        var popup = "<b>Name : " + Description + "</b><br/>Reference : " + Ref + "<br/>Text : " + text + "<br/>Comment : " + comment +
-         "<br/><a href='https://pleiades.stoa.org/places/" + pleiades + "'>Pleiades : " + pleiades + "</a>";
-
-        // icons for different categories of points
-        var markerURL = "";
-        var markerSize = [];
-        if(row.type === "tribe") {
-            markerURL = "./icons/star-stroked.svg";
-            markerSize = [15, 80];            
-        }
-        if(row.type === "forest") {
-            markerURL = "./icons/park-alt1.svg";
-            markerSize = [30, 80];           
-        }
-        if(row.type === "city") {
-            markerURL = "./icons/square-stroked.svg"
-            markerSize = [22, 80];            
-        }
-        if(row.type === "place" || row.type === "island") {
-            markerURL = "./icons/triangle-stroked.svg"
-            markerSize = [25, 80];            
-        }
-
-        //setting up icons for specific types
-        var pointIcon = L.icon({
-            iconUrl: markerURL,
-            iconSize: markerSize,
-        });
-
-        //adding markers to map with icons and binding popups
-        var marker = L.marker([row.Lat, row.Lng], {icon: pointIcon,
-            opacity: 1
-        }).bindPopup(popup);
-        StraboLayerGroup.addLayer(marker).addTo(map);
-    }    
-});
+addCSV("strabo.csv", StraboLayerGroup);
 
 // Pliny (source: pliny.csv)
 var PlinyLayerGroup = L.layerGroup([])
+addCSV("pliny.csv", PlinyLayerGroup);
 
-$.get("pliny.csv", function (csvString) {
+//GEOJSON Layers
+const addGeoJSON = async (url) => {
+    const response = await fetch(url);
+    const data = await response.json();
+    L.geoJson(data).addTo(map);
+}
 
-    // Use PapaParse to convert string to array of objects
-    var data = Papa.parse(csvString, { header: true, dynamicTyping: true }).data;
-
-
-    // For each row in data, create a marker and add it to an array for the Layer Group   
-    for (var i in data) {
-
-        // For each row, columns  `Description`, `Ref`, `Text`, `comment`, `Lat`, `Lng`, and `Pleiades` are required
-        var row = data[i];      
-
-        var Description = row.Description;
-        var Ref = row.Ref;
-        var text = row.Text;
-        var comment = row.comment;
-        if (comment === null) {
-            comment = " - "
-        }
-        var pleiades = row.Pleiades;        
-        var popup = "<b>Name : " + Description + "</b><br/>Reference : " + Ref + "<br/>Text : " + text + "<br/>Comment : " + comment +
-         "<br/><a href='https://pleiades.stoa.org/places/" + pleiades + "'>Pleiades : " + pleiades + "</a>";
-
-        // icons for different categories of points
-        var markerURL = "";
-        var markerSize = [];
-        if(row.type === "tribe") {
-            markerURL = "./icons/star-stroked.svg";
-            markerSize = [15, 80];            
-        }
-        if(row.type === "forest") {
-            markerURL = "./icons/park-alt1.svg";
-            markerSize = [30, 80];           
-        }
-        if(row.type === "city") {
-            markerURL = "./icons/square-stroked.svg"
-            markerSize = [22, 80];            
-        }
-        if(row.type === "place" || row.type === "island") {
-            markerURL = "./icons/triangle-stroked.svg"
-            markerSize = [25, 80];            
-        }
-
-        //setting up icons for specific types
-        var pointIcon = L.icon({
-            iconUrl: markerURL,
-            iconSize: markerSize,
-        });
-
-        //adding markers to map with icons and binding popups
-        var marker = L.marker([row.Lat, row.Lng], {icon: pointIcon,
-            opacity: 1
-        }).bindPopup(popup);
-        PlinyLayerGroup.addLayer(marker).addTo(map);
-    }    
-});
+var AntonineItineraryVector = addGeoJSON("/data/AntonineItinerary - vectors.geojson");
+var AntonineItineraryPoints = addGeoJSON("/data/AntonineItinerary - points.geojson");
+var CaesarBGVector = addGeoJSON("/data/CaesarBG - vectors.geojson");
 
 // OVERLAYMAPS VARIABLE
 var overlayMaps = {
     "Strabo": StraboLayerGroup,
-    "Pliny" : PlinyLayerGroup
+    "Pliny" : PlinyLayerGroup,
+    "Antonine Itinerary" :     
 };
-
 
 // SET UP INITIAL MAP
 var map = L.map('map', {
