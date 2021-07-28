@@ -118,7 +118,7 @@ var CaesarBGVector = addGeoJSON("/data/CaesarBG - vectors.geojson");
 var overlayMaps = {
     "Strabo": StraboLayerGroup,
     "Pliny" : PlinyLayerGroup,
-    "Antonine Itinerary" :     
+    
 };
 
 // SET UP INITIAL MAP
