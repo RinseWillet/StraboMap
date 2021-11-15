@@ -119,65 +119,84 @@ const apiCall = async (url) => {
         return data;
 }
 
-const GeoJSONHandling = async (url) => {
+const GeoJSONHandling = async (url, feature_style) => {
     apiCall(url)
     .then(data => {
         console.log(data)
-         //ignoring features with no coordinates/geometry
+        //looping over the features in the GeoJSON         
         for (i in data.features) {
-        if(data.features[i].geometry == null) {
-            console.log("unlocated")
-            continue;
-        }
+            //ignoring features with no coordinates/geometry
+            if(data.features[i].geometry == null) {
+                console.log("unlocated")
+                continue;
+            }
+            //Adding point features to map
+            if(data.features[i].geometry.type === "Point") {
+                addGeoJSONtoMap(data.features[i], feature_style, "Point")
+            }
     }})
    
 }
 
 //adding geojson data to map
-const addGeoJSONtoMap = (data) => {
+const addGeoJSONtoMap = (data, feature_style, type) => {
 
+    //dealing with point data
+    if (type === "Point") {
+        L.geoJSON(data, {
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng, feature_style)
+            }
+        }).addTo(map)
+    } else if (type === "MultiLineString") {
+        L.geoJSON(data, {
+            style: function (feature) {
+                return { color: 'blue'}
+            }
+        }).addTo(map)
+    }
 }
 
 
 urlGeoServerPtolemy = "http://localhost:8080/geoserver/ancient_infra/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ancient_infra%3APtolemy%27s%20Geography&maxFeatures=50&outputFormat=application%2Fjson"
 
-GeoJSONHandling(urlGeoServerPtolemy)
+GeoJSONHandling(urlGeoServerPtolemy, PtolemyMarkerStyle)
 
 
 
-const loadGeoJSON = async (url) => {
-        const response = await fetch(url);
-        const data = await response.json();
-        console.log(data);    
-        for (i in data.features) {
-            if(data.features[i].geometry === null) {            
-                continue;
-            }
-            if (data.features[i].geometry.type === "MultiLineString") {
-                L.geoJSON(data, {
-                    style: function (feature) {
-                        return { color: AntItColours[feature.properties.id] };
-                    }
-                }).addTo(map);
-            } else if (data.features[i].geometry.type === "Point") {            
-                L.geoJSON(data, {
-                    pointToLayer: function (feature, latlng) {
-                        if(data.name === "AntonineItinerary - points") {                   
-                            return L.circleMarker(latlng, AntItMarkerStyle);
-                        } else if (data.name === "strabo") {
-                            return L.circleMarker(latlng, StraboMarkerStyle);
-                        } else if (data.name === "ptolemy") {
-                            return L.circleMarker(latlng, PtolemyMarkerStyle);
-                        } else if (data.name === "pliny") {
-                            return L.circleMarker(latlng, PlinyMarkerStyle);
-                        }
-                    }
+// const loadGeoJSON = async (url) => {
+//         const response = await fetch(url);
+//         const data = await response.json();
+//         console.log(data);    
+//         for (i in data.features) {
+//             if(data.features[i].geometry === null) {            
+//                 continue;
+//             }
+//             if (data.features[i].geometry.type === "MultiLineString") {
+//                 L.geoJSON(data, {
+//                     style: function (feature) {
+//                         return { color: AntItColours[feature.properties.id] };
+//                     }
+//                 }).addTo(map);
+//             } else if (data.features[i].geometry.type === "Point") {            
+//                 L.geoJSON(data, {
+//                     pointToLayer: function (feature, latlng) {
+//                         if(data.name === "AntonineItinerary - points") {                   
+//                             return L.circleMarker(latlng, AntItMarkerStyle);
+//                         } else if (data.name === "strabo") {
+//                             return L.circleMarker(latlng, StraboMarkerStyle);
+//                         } else if (data.name === "ptolemy") {
+//                             return L.circleMarker(latlng, PtolemyMarkerStyle);
+//                         } else if (data.name === "pliny") {
+//                             return L.circleMarker(latlng, PlinyMarkerStyle);
+//                         }
+//                     }
                     
-                }).addTo(map)
-                ;
-            }
-        }
-    }
+//                 }).addTo(map)
+//                 ;
+//             }
+//         }
+//     }
     
 
 
@@ -226,62 +245,64 @@ const loadGeoJSON = async (url) => {
 //     }
 // }
 
-// var AntItColours = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000'];
+//// Styles
 
-// var AntItMarkerStyle = {
-//     radius: 4,
-//     fillColor: "#ff7800",
-//     color: "#000",
-//     weight: 1,
-//     opacity: 1,
-//     fillOpacity: 0.8
-// };
+var AntItColours = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000'];
 
-// var StraboMarkerStyle = {
-//     radius: 4,
-//     fillColor: "#3cb44b",
-//     color: "#000",
-//     weight: 1,
-//     opacity: 1,
-//     fillOpacity: 0.8
-// }
+var AntItMarkerStyle = {
+    radius: 4,
+    fillColor: "#ff7800",
+    color: "#000",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.8
+};
 
-// var PtolemyMarkerStyle = {
-//     radius: 4,
-//     fillColor: "#4363d8",
-//     color: "#000",
-//     weight: 1,
-//     opacity: 1,
-//     fillOpacity: 0.8
-// }
+var StraboMarkerStyle = {
+    radius: 4,
+    fillColor: "#3cb44b",
+    color: "#000",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.8
+}
 
-// var PlinyMarkerStyle = {
-//     radius: 4,
-//     fillColor: "#4363d8",
-//     color: "#000",
-//     weight: 1,
-//     opacity: 1,
-//     fillOpacity: 0.8
-// }
+var PtolemyMarkerStyle = {
+    radius: 4,
+    fillColor: "#4363d8",
+    color: "#000",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.8
+}
+
+var PlinyMarkerStyle = {
+    radius: 4,
+    fillColor: "#4363d8",
+    color: "#000",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.8
+}
 
 
-// var AntItStyle = {
-//     "color": "#0000FF",
-//     "weight": 5,
-//     "opacity": 0.65
-// };
+var AntItStyle = {
+    "color": "#0000FF",
+    "weight": 5,
+    "opacity": 0.65
+};
 
-// var CBGRomStyle = {
-//     "color": "#8B008B",
-//     "weight": 5,
-//     "opacity": 0.65
-// };
+var CBGRomStyle = {
+    "color": "#8B008B",
+    "weight": 5,
+    "opacity": 0.65
+};
 
-// var CBGRomStyle = {
-//     "color": "#00FF00",
-//     "weight": 5,
-//     "opacity": 0.65
-// };
+var CBGRomStyle = {
+    "color": "#00FF00",
+    "weight": 5,
+    "opacity": 0.65
+};
 
 
 var AntonineItineraryVector = "/data/AntonineItinerary - vectors.geojson";
