@@ -156,9 +156,9 @@ const addGeoJSONtoMap = (data, markerstyle, type) => {
                 return new L.circleMarker(latlng, markerstyle)
             },
             onEachFeature: function (feature, layer) {
-                var popUpText = bindPopup(data) 
+                var popUpText = createPopupText(data) 
                 ;
-                layer.bindPopup(popUpText)
+                layer.bindPopup(popUpText, popStyle)
             }
         }).addTo(map)
 
@@ -168,14 +168,21 @@ const addGeoJSONtoMap = (data, markerstyle, type) => {
             style: function (feature) {
                 return { color: 'blue'}
             },
-            on
         }).addTo(map)
     }
 }
 
+// custom popup style
+var popStyle =
+    {
+        'minWidth' : 200,
+        'className' : 'custom'
+    }
+
+
 //binding popups to points
 // to do: standardize layer-fields
-const bindPopup = (data) => {
+const createPopupText = (data) => {
     console.log(data.properties)
     let description = data.properties.Identifica;
     let text = data.properties.text;
@@ -190,7 +197,6 @@ const bindPopup = (data) => {
     }   
     return popup_text
 }
-
 
 //Geoserver layer API urls
 urlGeoServerPtolemy = "http://localhost:8080/geoserver/ancient_infra/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ancient_infra%3APtolemy%27s%20Geography&maxFeatures=50&outputFormat=application%2Fjson"
@@ -234,7 +240,6 @@ var PlinyMarkerStyle = {
     fillOpacity: 0.8
 }
 
-
 var AntItStyle = {
     "color": "#0000FF",
     "weight": 5,
@@ -255,20 +260,6 @@ var CBGRomStyle = {
 
 
 GeoJSONHandling(urlGeoServerPtolemy, PtolemyMarkerStyle)
-
-
-
-// function TRUUS(data, feature, layer) {
-//     console.log(feature);
-// }
-
-// function HENK(feature, layer) {
-//     if (feature.properties && feature.properties.Reference) {
-//         layer.bindPopup("<b>Name : " + feature.properties["name in text"] + "</b></br>Reference : " + feature.properties.Reference + "<br/><a href='https://pleiades.stoa.org/places/" + feature.properties["Pleiades nr."] + "'>Pleiades : " + feature.properties["Pleiades nr."] + "</a>")
-//     }
-// }
-
-
 
 
 var AntonineItineraryVector = "/data/AntonineItinerary - vectors.geojson";

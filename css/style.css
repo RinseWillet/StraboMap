@@ -35,3 +35,14 @@ a:link {
     background-color: transparent;
     text-decoration: underline;
   }
+
+/* Leaflet popup custom style */
+
+.custom .leaflet-popup-content-wrapper {
+  background-color: gray;
+  opacity: 0.9;
+}
+
+.custom .leaflet-popup-tip {
+  background: red;
+}
