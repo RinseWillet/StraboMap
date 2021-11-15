@@ -1,3 +1,8 @@
+// TO DO:
+// Standardize layer fields
+
+
+
 //BASEMAPS
 
 // Open Street Map tile layer as base map. The phrase .addTo(map) ensures this base map is displayed by default
@@ -32,6 +37,8 @@ var BaseMaps = {
 };
 
 //OVERLAY MAPS
+
+//empty operational layer to add layers to
 
 //CSV  Layers
 const addCSV = async (url, layerGroup) => {
@@ -105,6 +112,8 @@ var PlinyLayerGroup = L.layerGroup([])
 addCSV("pliny.csv", PlinyLayerGroup);
 
 
+
+
 //Reading published layer Geoserver @localhost:8080 (layer name is Ptolemy)
 
 // making the apiCall and fetching the json response
@@ -115,138 +124,89 @@ const apiCall = async (url) => {
         cache: 'no-cache',
         credentials: 'same-origin'        
         });
-        const data = response.json();
-        return data;
+        return response.json();
 }
 
-const GeoJSONHandling = async (url, feature_style) => {
+const GeoJSONHandling = async (url, feature_style, feature_layergroup) => {
+
+    //calling API with url and retrieving Geojson from Geoserver API
     apiCall(url)
     .then(data => {
         console.log(data)
+
         //looping over the features in the GeoJSON         
         for (i in data.features) {
+
             //ignoring features with no coordinates/geometry
             if(data.features[i].geometry == null) {
                 console.log("unlocated")
                 continue;
             }
+
             //Adding point features to map
             if(data.features[i].geometry.type === "Point") {
-                addGeoJSONtoMap(data.features[i], feature_style, "Point")
+                addGeoJSONtoMap(data.features[i], feature_style, feature_layergroup, "Point")
             }
     }})
-   
 }
 
 //adding geojson data to map
-const addGeoJSONtoMap = (data, feature_style, type) => {
+const addGeoJSONtoMap = (data, markerstyle, feature_layergroup, type) => {
 
     //dealing with point data
     if (type === "Point") {
-        L.geoJSON(data, {
+        var geoJSONlayer = L.geoJSON(data, {
             pointToLayer: function (feature, latlng) {
-                return L.circleMarker(latlng, feature_style)
+                return new L.circleMarker(latlng, markerstyle)
+            },
+            onEachFeature: function (feature, layer) {
+                var popUpText = createPopupText(data) 
+                ;
+                layer.bindPopup(popUpText, popStyle)
             }
-        }).addTo(map)
+        });
+    feature_layergroup.addLayer(geoJSONlayer);
+
+        //dealing with MutliLine data
     } else if (type === "MultiLineString") {
-        L.geoJSON(data, {
+       L.geoJSON(data, {
             style: function (feature) {
                 return { color: 'blue'}
-            }
-        }).addTo(map)
+            },
+        }).addTo(map); // add data from GeoJSON to map
     }
 }
 
+// custom popup style
+var popStyle =
+    {
+        'minWidth' : 150,
+        'maxWidth' : 400,
+        'className' : 'custom'
+    }
 
+
+//binding popups to points
+// to do: standardize layer-fields
+const createPopupText = (data) => {
+    let description = data.properties.Identifica;
+    let text = data.properties.text;
+    let ref = data.properties.reference;
+    let comment = data.properties.comment;
+    let pleiades = data.properties["Pleiader n"];
+    if (pleiades === null) {
+        var popup_text = "<b>Name : " + description + "</b><br/>Reference : " + ref + "<br/>Text : " + text + "<br/>Comment : " + comment
+    } else {
+        var popup_text = "<b>Name : " + description + "</b><br/>Reference : " + ref + "<br/>Text : " + text + "<br/>Comment : " + comment +
+        "<br/><a href='https://pleiades.stoa.org/places/" + pleiades + "'>Pleiades : " + pleiades + "</a>"
+    }   
+    return popup_text
+}
+
+//Geoserver layer API urls
 urlGeoServerPtolemy = "http://localhost:8080/geoserver/ancient_infra/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ancient_infra%3APtolemy%27s%20Geography&maxFeatures=50&outputFormat=application%2Fjson"
 
-GeoJSONHandling(urlGeoServerPtolemy, PtolemyMarkerStyle)
-
-
-
-// const loadGeoJSON = async (url) => {
-//         const response = await fetch(url);
-//         const data = await response.json();
-//         console.log(data);    
-//         for (i in data.features) {
-//             if(data.features[i].geometry === null) {            
-//                 continue;
-//             }
-//             if (data.features[i].geometry.type === "MultiLineString") {
-//                 L.geoJSON(data, {
-//                     style: function (feature) {
-//                         return { color: AntItColours[feature.properties.id] };
-//                     }
-//                 }).addTo(map);
-//             } else if (data.features[i].geometry.type === "Point") {            
-//                 L.geoJSON(data, {
-//                     pointToLayer: function (feature, latlng) {
-//                         if(data.name === "AntonineItinerary - points") {                   
-//                             return L.circleMarker(latlng, AntItMarkerStyle);
-//                         } else if (data.name === "strabo") {
-//                             return L.circleMarker(latlng, StraboMarkerStyle);
-//                         } else if (data.name === "ptolemy") {
-//                             return L.circleMarker(latlng, PtolemyMarkerStyle);
-//                         } else if (data.name === "pliny") {
-//                             return L.circleMarker(latlng, PlinyMarkerStyle);
-//                         }
-//                     }
-                    
-//                 }).addTo(map)
-//                 ;
-//             }
-//         }
-//     }
-    
-
-
-// //GEOJSON Layers
-// const loadGeoJSON = async (url) => {
-//     const response = await fetch(url);
-//     const data = await response.json();
-//     console.log(data);    
-//     for (i in data.features) {
-//         if(data.features[i].geometry === null) {            
-//             continue;
-//         }
-//         if (data.features[i].geometry.type === "MultiLineString") {
-//             L.geoJSON(data, {
-//                 style: function (feature) {
-//                     return { color: AntItColours[feature.properties.id] };
-//                 }
-//             }).addTo(map);
-//         } else if (data.features[i].geometry.type === "Point") {            
-//             L.geoJSON(data, {
-//                 pointToLayer: function (feature, latlng) {
-//                     if(data.name === "AntonineItinerary - points") {                   
-//                         return L.circleMarker(latlng, AntItMarkerStyle);
-//                     } else if (data.name === "strabo") {
-//                         return L.circleMarker(latlng, StraboMarkerStyle);
-//                     } else if (data.name === "ptolemy") {
-//                         return L.circleMarker(latlng, PtolemyMarkerStyle);
-//                     } else if (data.name === "pliny") {
-//                         return L.circleMarker(latlng, PlinyMarkerStyle);
-//                     }
-//                 }
-                
-//             }).addTo(map)
-//             ;
-//         }
-//     }
-// }
-
-// function TRUUS(data, feature, layer) {
-//     console.log(feature);
-// }
-
-// function HENK(feature, layer) {
-//     if (feature.properties && feature.properties.Reference) {
-//         layer.bindPopup("<b>Name : " + feature.properties["name in text"] + "</b></br>Reference : " + feature.properties.Reference + "<br/><a href='https://pleiades.stoa.org/places/" + feature.properties["Pleiades nr."] + "'>Pleiades : " + feature.properties["Pleiades nr."] + "</a>")
-//     }
-// }
-
-//// Styles
-
+//// MarkerStyles
 var AntItColours = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000'];
 
 var AntItMarkerStyle = {
@@ -285,7 +245,6 @@ var PlinyMarkerStyle = {
     fillOpacity: 0.8
 }
 
-
 var AntItStyle = {
     "color": "#0000FF",
     "weight": 5,
@@ -303,6 +262,9 @@ var CBGRomStyle = {
     "weight": 5,
     "opacity": 0.65
 };
+
+var PtolemyLayergroup = L.layerGroup([])
+GeoJSONHandling(urlGeoServerPtolemy, PtolemyMarkerStyle, PtolemyLayergroup)
 
 
 var AntonineItineraryVector = "/data/AntonineItinerary - vectors.geojson";
@@ -324,6 +286,7 @@ var PlinyJSON = "/data/pliny.geojson";
 var overlayMaps = {
     "Strabo": StraboLayerGroup,
     "Pliny": PlinyLayerGroup,
+    "Ptolemy": PtolemyLayergroup
 };
 
 // SET UP INITIAL MAP
