@@ -104,6 +104,83 @@ addCSV("strabo.csv", StraboLayerGroup);
 var PlinyLayerGroup = L.layerGroup([])
 addCSV("pliny.csv", PlinyLayerGroup);
 
+
+//Reading published layer Geoserver @localhost:8080 (layer name is Ptolemy)
+
+// making the apiCall and fetching the json response
+const apiCall = async (url) => {
+    const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-cache',
+        credentials: 'same-origin'        
+        });
+        const data = response.json();
+        return data;
+}
+
+const GeoJSONHandling = async (url) => {
+    apiCall(url)
+    .then(data => {
+        console.log(data)
+         //ignoring features with no coordinates/geometry
+        for (i in data.features) {
+        if(data.features[i].geometry == null) {
+            console.log("unlocated")
+            continue;
+        }
+    }})
+   
+}
+
+//adding geojson data to map
+const addGeoJSONtoMap = (data) => {
+
+}
+
+
+urlGeoServerPtolemy = "http://localhost:8080/geoserver/ancient_infra/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ancient_infra%3APtolemy%27s%20Geography&maxFeatures=50&outputFormat=application%2Fjson"
+
+GeoJSONHandling(urlGeoServerPtolemy)
+
+
+
+const loadGeoJSON = async (url) => {
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log(data);    
+        for (i in data.features) {
+            if(data.features[i].geometry === null) {            
+                continue;
+            }
+            if (data.features[i].geometry.type === "MultiLineString") {
+                L.geoJSON(data, {
+                    style: function (feature) {
+                        return { color: AntItColours[feature.properties.id] };
+                    }
+                }).addTo(map);
+            } else if (data.features[i].geometry.type === "Point") {            
+                L.geoJSON(data, {
+                    pointToLayer: function (feature, latlng) {
+                        if(data.name === "AntonineItinerary - points") {                   
+                            return L.circleMarker(latlng, AntItMarkerStyle);
+                        } else if (data.name === "strabo") {
+                            return L.circleMarker(latlng, StraboMarkerStyle);
+                        } else if (data.name === "ptolemy") {
+                            return L.circleMarker(latlng, PtolemyMarkerStyle);
+                        } else if (data.name === "pliny") {
+                            return L.circleMarker(latlng, PlinyMarkerStyle);
+                        }
+                    }
+                    
+                }).addTo(map)
+                ;
+            }
+        }
+    }
+    
+
+
 // //GEOJSON Layers
 // const loadGeoJSON = async (url) => {
 //     const response = await fetch(url);
