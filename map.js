@@ -38,6 +38,8 @@ var BaseMaps = {
 
 //OVERLAY MAPS
 
+//empty operational layer to add layers to
+
 //CSV  Layers
 const addCSV = async (url, layerGroup) => {
 
@@ -110,6 +112,8 @@ var PlinyLayerGroup = L.layerGroup([])
 addCSV("pliny.csv", PlinyLayerGroup);
 
 
+
+
 //Reading published layer Geoserver @localhost:8080 (layer name is Ptolemy)
 
 // making the apiCall and fetching the json response
@@ -123,7 +127,7 @@ const apiCall = async (url) => {
         return response.json();
 }
 
-const GeoJSONHandling = async (url, feature_style) => {
+const GeoJSONHandling = async (url, feature_style, feature_layergroup) => {
 
     //calling API with url and retrieving Geojson from Geoserver API
     apiCall(url)
@@ -141,13 +145,13 @@ const GeoJSONHandling = async (url, feature_style) => {
 
             //Adding point features to map
             if(data.features[i].geometry.type === "Point") {
-                addGeoJSONtoMap(data.features[i], feature_style, "Point")
+                addGeoJSONtoMap(data.features[i], feature_style, feature_layergroup, "Point")
             }
     }})
 }
 
 //adding geojson data to map
-const addGeoJSONtoMap = (data, markerstyle, type) => {
+const addGeoJSONtoMap = (data, markerstyle, feature_layergroup, type) => {
 
     //dealing with point data
     if (type === "Point") {
@@ -160,7 +164,8 @@ const addGeoJSONtoMap = (data, markerstyle, type) => {
                 ;
                 layer.bindPopup(popUpText, popStyle)
             }
-        }).addTo(map)
+        });
+    feature_layergroup.addLayer(geoJSONlayer);
 
         //dealing with MutliLine data
     } else if (type === "MultiLineString") {
@@ -168,14 +173,15 @@ const addGeoJSONtoMap = (data, markerstyle, type) => {
             style: function (feature) {
                 return { color: 'blue'}
             },
-        }).addTo(map)
+        }).addTo(map); // add data from GeoJSON to map
     }
 }
 
 // custom popup style
 var popStyle =
     {
-        'minWidth' : 200,
+        'minWidth' : 150,
+        'maxWidth' : 400,
         'className' : 'custom'
     }
 
@@ -183,7 +189,6 @@ var popStyle =
 //binding popups to points
 // to do: standardize layer-fields
 const createPopupText = (data) => {
-    console.log(data.properties)
     let description = data.properties.Identifica;
     let text = data.properties.text;
     let ref = data.properties.reference;
@@ -258,8 +263,8 @@ var CBGRomStyle = {
     "opacity": 0.65
 };
 
-
-GeoJSONHandling(urlGeoServerPtolemy, PtolemyMarkerStyle)
+var PtolemyLayergroup = L.layerGroup([])
+GeoJSONHandling(urlGeoServerPtolemy, PtolemyMarkerStyle, PtolemyLayergroup)
 
 
 var AntonineItineraryVector = "/data/AntonineItinerary - vectors.geojson";
@@ -281,6 +286,7 @@ var PlinyJSON = "/data/pliny.geojson";
 var overlayMaps = {
     "Strabo": StraboLayerGroup,
     "Pliny": PlinyLayerGroup,
+    "Ptolemy": PtolemyLayergroup
 };
 
 // SET UP INITIAL MAP
