@@ -1,3 +1,8 @@
+// TO DO:
+// Standardize layer fields
+
+
+
 //BASEMAPS
 
 // Open Street Map tile layer as base map. The phrase .addTo(map) ensures this base map is displayed by default
@@ -151,8 +156,8 @@ const addGeoJSONtoMap = (data, markerstyle, type) => {
                 return new L.circleMarker(latlng, markerstyle)
             },
             onEachFeature: function (feature, layer) {
-                var popUpText = ( 
-                "TESTPOPUP!!! ");
+                var popUpText = bindPopup(data) 
+                ;
                 layer.bindPopup(popUpText)
             }
         }).addTo(map)
@@ -169,9 +174,21 @@ const addGeoJSONtoMap = (data, markerstyle, type) => {
 }
 
 //binding popups to points
-
+// to do: standardize layer-fields
 const bindPopup = (data) => {
-    console.log(data.feature)
+    console.log(data.properties)
+    let description = data.properties.Identifica;
+    let text = data.properties.text;
+    let ref = data.properties.reference;
+    let comment = data.properties.comment;
+    let pleiades = data.properties["Pleiader n"];
+    if (pleiades === null) {
+        var popup_text = "<b>Name : " + description + "</b><br/>Reference : " + ref + "<br/>Text : " + text + "<br/>Comment : " + comment
+    } else {
+        var popup_text = "<b>Name : " + description + "</b><br/>Reference : " + ref + "<br/>Text : " + text + "<br/>Comment : " + comment +
+        "<br/><a href='https://pleiades.stoa.org/places/" + pleiades + "'>Pleiades : " + pleiades + "</a>"
+    }   
+    return popup_text
 }
 
 
