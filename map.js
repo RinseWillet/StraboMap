@@ -4,31 +4,31 @@
 var OSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
-  });  
+});
 
 // ESRI World Imagery Basemap
 var Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-	attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
 });
 
 // Light Carto basemap tiles
 var light = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attribution">CARTO</a>'
-  });
+});
 
 //Dark basemap without labels by CartoDB
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-	subdomains: 'abcd',
-	maxZoom: 19
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
 });
 
 // variable with all the basemaps
 var BaseMaps = {
-    "Light CartoDB" : light,
-    "Open Street Map" : OSM,
-    "ESRI World Imagery" : Esri_WorldImagery,
-    "Dark CartoDB" : dark    
+    "Light CartoDB": light,
+    "Open Street Map": OSM,
+    "ESRI World Imagery": Esri_WorldImagery,
+    "Dark CartoDB": dark
 };
 
 //OVERLAY MAPS
@@ -47,7 +47,7 @@ const addCSV = async (url, layerGroup) => {
     for (var i in data) {
 
         // For each row, columns  `Description`, `Ref`, `Text`, `comment`, `Lat`, `Lng`, and `Pleiades` are required
-        var row = data[i];      
+        var row = data[i];
 
         var Description = row.Description;
         var Ref = row.Ref;
@@ -56,28 +56,28 @@ const addCSV = async (url, layerGroup) => {
         if (comment === null) {
             comment = " - "
         }
-        var pleiades = row.Pleiades;        
+        var pleiades = row.Pleiades;
         var popup = "<b>Name : " + Description + "</b><br/>Reference : " + Ref + "<br/>Text : " + text + "<br/>Comment : " + comment +
-         "<br/><a href='https://pleiades.stoa.org/places/" + pleiades + "'>Pleiades : " + pleiades + "</a>";
+            "<br/><a href='https://pleiades.stoa.org/places/" + pleiades + "'>Pleiades : " + pleiades + "</a>";
 
         // icons for different categories of points
         var markerURL = "";
         var markerSize = [];
-        if(row.type === "tribe") {
+        if (row.type === "tribe") {
             markerURL = "./icons/star-stroked.svg";
-            markerSize = [15, 80];            
+            markerSize = [15, 80];
         }
-        if(row.type === "forest") {
+        if (row.type === "forest") {
             markerURL = "./icons/park-alt1.svg";
-            markerSize = [30, 80];           
+            markerSize = [30, 80];
         }
-        if(row.type === "city") {
+        if (row.type === "city") {
             markerURL = "./icons/square-stroked.svg"
-            markerSize = [22, 80];            
+            markerSize = [22, 80];
         }
-        if(row.type === "place" || row.type === "island") {
+        if (row.type === "place" || row.type === "island") {
             markerURL = "./icons/triangle-stroked.svg"
-            markerSize = [25, 80];            
+            markerSize = [25, 80];
         }
 
         //setting up icons for specific types
@@ -87,7 +87,8 @@ const addCSV = async (url, layerGroup) => {
         });
 
         //adding markers to map with icons and binding popups
-        var marker = L.marker([row.Lat, row.Lng], {icon: pointIcon,
+        var marker = L.marker([row.Lat, row.Lng], {
+            icon: pointIcon,
             opacity: 1
         }).bindPopup(popup);
         layerGroup.addLayer(marker).addTo(map);
@@ -103,22 +104,128 @@ addCSV("strabo.csv", StraboLayerGroup);
 var PlinyLayerGroup = L.layerGroup([])
 addCSV("pliny.csv", PlinyLayerGroup);
 
-//GEOJSON Layers
-const addGeoJSON = async (url) => {
-    const response = await fetch(url);
-    const data = await response.json();
-    L.geoJson(data).addTo(map);
-}
+// //GEOJSON Layers
+// const loadGeoJSON = async (url) => {
+//     const response = await fetch(url);
+//     const data = await response.json();
+//     console.log(data);    
+//     for (i in data.features) {
+//         if(data.features[i].geometry === null) {            
+//             continue;
+//         }
+//         if (data.features[i].geometry.type === "MultiLineString") {
+//             L.geoJSON(data, {
+//                 style: function (feature) {
+//                     return { color: AntItColours[feature.properties.id] };
+//                 }
+//             }).addTo(map);
+//         } else if (data.features[i].geometry.type === "Point") {            
+//             L.geoJSON(data, {
+//                 pointToLayer: function (feature, latlng) {
+//                     if(data.name === "AntonineItinerary - points") {                   
+//                         return L.circleMarker(latlng, AntItMarkerStyle);
+//                     } else if (data.name === "strabo") {
+//                         return L.circleMarker(latlng, StraboMarkerStyle);
+//                     } else if (data.name === "ptolemy") {
+//                         return L.circleMarker(latlng, PtolemyMarkerStyle);
+//                     } else if (data.name === "pliny") {
+//                         return L.circleMarker(latlng, PlinyMarkerStyle);
+//                     }
+//                 }
+                
+//             }).addTo(map)
+//             ;
+//         }
+//     }
+// }
 
-var AntonineItineraryVector = addGeoJSON("/data/AntonineItinerary - vectors.geojson");
-var AntonineItineraryPoints = addGeoJSON("/data/AntonineItinerary - points.geojson");
-var CaesarBGVector = addGeoJSON("/data/CaesarBG - vectors.geojson");
+// function TRUUS(data, feature, layer) {
+//     console.log(feature);
+// }
+
+// function HENK(feature, layer) {
+//     if (feature.properties && feature.properties.Reference) {
+//         layer.bindPopup("<b>Name : " + feature.properties["name in text"] + "</b></br>Reference : " + feature.properties.Reference + "<br/><a href='https://pleiades.stoa.org/places/" + feature.properties["Pleiades nr."] + "'>Pleiades : " + feature.properties["Pleiades nr."] + "</a>")
+//     }
+// }
+
+// var AntItColours = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000'];
+
+// var AntItMarkerStyle = {
+//     radius: 4,
+//     fillColor: "#ff7800",
+//     color: "#000",
+//     weight: 1,
+//     opacity: 1,
+//     fillOpacity: 0.8
+// };
+
+// var StraboMarkerStyle = {
+//     radius: 4,
+//     fillColor: "#3cb44b",
+//     color: "#000",
+//     weight: 1,
+//     opacity: 1,
+//     fillOpacity: 0.8
+// }
+
+// var PtolemyMarkerStyle = {
+//     radius: 4,
+//     fillColor: "#4363d8",
+//     color: "#000",
+//     weight: 1,
+//     opacity: 1,
+//     fillOpacity: 0.8
+// }
+
+// var PlinyMarkerStyle = {
+//     radius: 4,
+//     fillColor: "#4363d8",
+//     color: "#000",
+//     weight: 1,
+//     opacity: 1,
+//     fillOpacity: 0.8
+// }
+
+
+// var AntItStyle = {
+//     "color": "#0000FF",
+//     "weight": 5,
+//     "opacity": 0.65
+// };
+
+// var CBGRomStyle = {
+//     "color": "#8B008B",
+//     "weight": 5,
+//     "opacity": 0.65
+// };
+
+// var CBGRomStyle = {
+//     "color": "#00FF00",
+//     "weight": 5,
+//     "opacity": 0.65
+// };
+
+
+var AntonineItineraryVector = "/data/AntonineItinerary - vectors.geojson";
+var AntonineItineraryPoints = "/data/AntonineItinerary - points.geojson";
+var StraboJSON = "/data/strabo.geojson";
+var PtolemyJSON = "/data/ptolemy.geojson";
+var PlinyJSON = "/data/pliny.geojson";
+
+// loadGeoJSON(AntonineItineraryVector);
+// loadGeoJSON(AntonineItineraryPoints);
+// loadGeoJSON(StraboJSON);
+// loadGeoJSON(PtolemyJSON);
+// loadGeoJSON(PlinyJSON);
+// addGeoJSON(CaesarBGVector);
+// var AntonineItineraryPoints = addGeoJSON("/data/AntonineItinerary - points.geojson");
+// var CaesarBGVector = addGeoJSON("/data/CaesarBG - vectors.geojson");
 
 // OVERLAYMAPS VARIABLE
 var overlayMaps = {
     "Strabo": StraboLayerGroup,
-    "Pliny" : PlinyLayerGroup,
-    
+    "Pliny": PlinyLayerGroup,
 };
 
 // SET UP INITIAL MAP
@@ -127,7 +234,7 @@ var map = L.map('map', {
     zoom: 5,
     scrollWheelZoom: true,
     tap: false,
-    layers: [light, StraboLayerGroup]    
+    layers: [light, StraboLayerGroup]
 });
 
 // SET UP CONTROL PANEL for selecting the baselayers
@@ -139,8 +246,8 @@ var controlLayers = L.control.layers(BaseMaps, overlayMaps, {
 //GEOLOCATION - CENTRE MAP ON YOUR POSITION
 map.locate(
     {
-     setView: true, 
-     maxZoom: 7 
+        setView: true,
+        maxZoom: 7
     }
 );
 
