@@ -112,9 +112,7 @@ var PlinyLayerGroup = L.layerGroup([])
 addCSV("pliny.csv", PlinyLayerGroup);
 
 
-
-
-//Reading published layer Geoserver @localhost:8080 (layer name is Ptolemy)
+//Reading published layer Geoserver @localhost:8080
 
 // making the apiCall and fetching the json response
 const apiCall = async (url) => {
@@ -184,7 +182,6 @@ var popStyle =
         'maxWidth' : 400,
         'className' : 'custom'
     }
-
 
 //binding popups to points
 // to do: standardize layer-fields
@@ -302,6 +299,22 @@ var map = L.map('map', {
 var controlLayers = L.control.layers(BaseMaps, overlayMaps, {
     position: "topright",
     collapsed: true
+}).addTo(map);
+
+//add scale bar to map
+L.control.scale({
+    position: 'bottomleft'
+}).addTo(map);
+
+// Overview mini map
+var Esri_WorldTopoMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '&copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+});
+
+var miniMap = new L.Control.MiniMap(Esri_WorldTopoMap, {
+    toggleDisplay: true,
+    minimized: false,
+    position: 'bottomleft'
 }).addTo(map);
 
 //GEOLOCATION - CENTRE MAP ON YOUR POSITION
